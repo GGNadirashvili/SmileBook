@@ -86,6 +86,16 @@ begin
   order by ca.st, ca.did;
 end $$;
 
+-- All bookable slots over a range of days in one round trip (day picker + slot grid).
+create function available_slots_range(p_service_id uuid, p_from date, p_days int default 14, p_dentist_id uuid default null)
+returns table (dentist_id uuid, starts_at timestamptz, ends_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select a.dentist_id, a.starts_at, a.ends_at
+  from generate_series(p_from, p_from + (least(p_days, 60) - 1), interval '1 day') as g(d),
+  lateral available_slots(p_service_id, g.d::date, p_dentist_id) a
+  order by a.starts_at, a.dentist_id;
+$$;
+
 -- Earliest bookable slot for a clinic (optionally within a category / day part / time window).
 create function clinic_next_slot(
   p_clinic_id uuid, p_category_id int default null, p_from date default null,
@@ -441,6 +451,6 @@ end $$;
 
 -- Public API surface
 revoke all on function _create_appointment from public, anon, authenticated;
-grant execute on function available_slots, clinic_next_slot, search_clinics to anon, authenticated;
+grant execute on function available_slots, available_slots_range, clinic_next_slot, search_clinics to anon, authenticated;
 grant execute on function book_appointment, cancel_appointment, reschedule_appointment,
   create_review, reply_to_review, report_review to authenticated;
