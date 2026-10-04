@@ -37,7 +37,7 @@ export default function App() {
   if (!isConfigured) return <Setup />
   return (
     <QueryClientProvider client={qc}>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <AuthProvider>
           <ScrollTop />
           <div className="flex min-h-screen flex-col">

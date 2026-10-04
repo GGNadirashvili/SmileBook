@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronLeft, CalendarPlus, Navigation, Users, BellRing, Hourglass, Wallet } from 'lucide-react'
 import { addDays, dayLong, minutes, price, tbilisiDate, time } from '../lib/format'
@@ -220,13 +220,14 @@ function Confirm(p: ConfirmProps) {
 function Waitlist({ clinicId, serviceId, dentistId, compact, autoOpen }: { clinicId: string; serviceId: string; dentistId: string | null; compact?: boolean; autoOpen?: boolean }) {
   const { user } = useAuth()
   const nav = useNavigate()
+  const loc = useLocation()
   const [open, setOpen] = useState(!!autoOpen)
   const [days, setDays] = useState(14)
   const [done, setDone] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
   async function join() {
-    if (!user) { nav(`/login?next=${encodeURIComponent(location.pathname + location.search)}`); return }
+    if (!user) { nav(`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`); return }
     try {
       const today = tbilisiDate()
       await joinWaitlist({ user_id: user.id, clinic_id: clinicId, service_id: serviceId, dentist_id: dentistId, date_from: today, date_to: addDays(today, days) })

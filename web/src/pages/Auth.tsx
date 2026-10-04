@@ -66,7 +66,7 @@ export function Register() {
     e.preventDefault(); setBusy(true); setErr(null)
     const { data, error } = await supabase.auth.signUp({
       email: f.email, password: f.password,
-      options: { data: { full_name: f.name, phone: f.phone }, emailRedirectTo: window.location.origin + next },
+      options: { data: { full_name: f.name, phone: f.phone }, emailRedirectTo: window.location.origin + import.meta.env.BASE_URL.replace(/\/$/, '') + next },
     })
     setBusy(false)
     if (error) { setErr(authMessage(error.message)); return }
