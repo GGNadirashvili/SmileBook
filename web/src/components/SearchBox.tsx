@@ -25,13 +25,13 @@ export function SearchBox({ value, onSubmit, compact = false }: Props) {
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
 
-  // Show the category name in the box when arriving with ?cat=
+  // Show the chosen intent phrase / category name in the box when arriving via URL
   useEffect(() => {
-    if (value.category_id && !value.q && cats.length) {
-      const c = cats.find(c => c.id === value.category_id)
-      if (c) setText(c.name)
-    }
-  }, [value.category_id, value.q, cats])
+    if (value.q) return
+    const phrase = value.intent ? intents.find(i => i.id === value.intent)?.phrase : undefined
+    const name = value.category_id ? cats.find(c => c.id === value.category_id)?.name : undefined
+    if (phrase ?? name) setText((phrase ?? name)!)
+  }, [value.category_id, value.intent, value.q, cats, intents])
 
   useEffect(() => {
     const h = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }

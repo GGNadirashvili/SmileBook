@@ -75,11 +75,14 @@ function Toggle({ label, on, onClick }: { label: string; on: boolean; onClick: (
   )
 }
 
-function MoreFilters({ value, onChange, onReset, onClose }: { value: SearchState; onChange: (p: Partial<SearchState>) => void; onReset: () => void; onClose: () => void }) {
-  const t = (k: keyof SearchState) => () => onChange({ [k]: value[k] ? undefined : true } as Partial<SearchState>)
-  const Group = ({ title, children }: { title: string; children: React.ReactNode }) => (
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
     <section className="py-4"><h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">{title}</h4><div className="grid gap-2 sm:grid-cols-2">{children}</div></section>
   )
+}
+
+function MoreFilters({ value, onChange, onReset, onClose }: { value: SearchState; onChange: (p: Partial<SearchState>) => void; onReset: () => void; onClose: () => void }) {
+  const t = (k: keyof SearchState) => () => onChange({ [k]: value[k] ? undefined : true } as Partial<SearchState>)
   return (
     <div className="fixed inset-0 z-[1500] flex justify-end bg-ink/40" onClick={onClose}>
       <div className="flex h-full w-full max-w-md flex-col bg-white shadow-pop" onClick={e => e.stopPropagation()}>

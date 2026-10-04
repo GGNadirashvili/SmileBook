@@ -7,13 +7,15 @@ Georgian dental marketplace and scheduling platform: find a trusted dentist who 
 
 ## Database setup (Supabase)
 
-In the Supabase dashboard → SQL Editor, run in order:
+In the Supabase dashboard → SQL Editor:
 
-1. `supabase/migrations/0001_schema.sql`
-2. `supabase/migrations/0002_functions.sql`
-3. `supabase/migrations/0003_rls.sql`
-4. `supabase/seed.sql` (fictional test clinics, dentists, reviews)
-5. After creating test users in Authentication → Users: `supabase/dev_roles.sql`
+1. Run `supabase/setup_all.sql` (schema + functions + security policies + fictional test data).
+   It is the four files below concatenated: `migrations/0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `seed.sql`.
+   Regenerate after edits: `cat supabase/migrations/000*.sql supabase/seed.sql > supabase/setup_all.sql`
+2. After creating test users in Authentication → Users (tick "Auto confirm"): run `supabase/dev_roles.sql`.
+
+Map tiles come from openstreetmap.org (fine for development). Before real traffic, switch the tile URL in
+`web/src/components/MapView.tsx` and `MiniMap.tsx` to a keyed provider (MapTiler, Stadia, etc.).
 
 ## Frontend
 

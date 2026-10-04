@@ -22,6 +22,8 @@ function Controller({ clinics, city, me }: { clinics: ClinicHit[]; city?: City; 
   const map = useMap()
   const key = clinics.map(c => c.id).join(',')
   useEffect(() => {
+    const size = map.getSize()
+    if (!size.x || !size.y) return   // hidden container (e.g. mobile list view): Leaflet cannot animate
     if (me && clinics.length) {
       const b = L.latLngBounds([[me.lat, me.lng], ...clinics.slice(0, 6).map(c => [c.lat, c.lng] as [number, number])])
       map.flyToBounds(b, { padding: [50, 50], maxZoom: 15, duration: 0.7 })
@@ -56,8 +58,8 @@ export function MapView({ clinics, cities, activeId, onSelect, selectedCity, onC
   return (
     <MapContainer center={GEORGIA} zoom={7} minZoom={6} className="h-full w-full" zoomControl scrollWheelZoom>
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> '
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <Controller clinics={clinics} city={selectedCity} me={me} />
       <ZoomWatcher onZoom={setZoom} />

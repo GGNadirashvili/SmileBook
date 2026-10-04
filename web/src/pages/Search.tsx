@@ -6,6 +6,7 @@ import { SearchBox } from '../components/SearchBox'
 import { FilterBar } from '../components/FilterBar'
 import { ClinicCard } from '../components/ClinicCard'
 import { MapView } from '../components/MapView'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { Empty, ErrorNote, Spinner } from '../components/ui'
 import { parseParams, toParams, type SearchState } from '../lib/searchState'
 import { searchClinics } from '../lib/api'
@@ -107,8 +108,8 @@ export default function Search() {
 
           <div className={`${view === 'list' ? 'hidden lg:block' : ''}`}>
             <div className="sticky top-20 h-[calc(100vh-7rem)] min-h-[420px] overflow-hidden rounded-2xl ring-1 ring-line">
-              <MapView clinics={results} cities={cities} activeId={active} onSelect={setActive} selectedCity={city} me={me}
-                onCity={id => update({ city_id: id, district_id: undefined })} />
+              <ErrorBoundary><MapView key={view} clinics={results} cities={cities} activeId={active} onSelect={setActive} selectedCity={city} me={me}
+                onCity={id => update({ city_id: id, district_id: undefined })} /></ErrorBoundary>
             </div>
           </div>
         </div>

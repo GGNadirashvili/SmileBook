@@ -7,9 +7,10 @@ import { Avatar, Chip, ErrorNote, Rating, Spinner, Stars, Verified, card, Button
 import { Cover } from '../components/Cover'
 import { SlotPicker } from '../components/SlotPicker'
 import { MiniMap } from '../components/MiniMap'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { useFavorites } from '../lib/hooks'
 import { directionsUrl } from '../lib/calendar'
-import { minutes, price, tbilisiDate, relativeSlot } from '../lib/format'
+import { dateMedium, minutes, price, tbilisiDate, relativeSlot } from '../lib/format'
 import { languageLabel, weekdayName } from '../lib/labels'
 import type { Review, Service } from '../lib/types'
 
@@ -54,7 +55,7 @@ export default function ClinicPage() {
       <div className="border-b border-line bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6">
           <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-            <div className="grid gap-5 sm:grid-cols-[220px_1fr]">
+            <div className="grid min-w-0 gap-5 sm:grid-cols-[220px_1fr]">
               <Cover id={clinic.id} name={clinic.name} url={clinic.cover_url} className="h-44 rounded-2xl sm:h-full" />
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -81,7 +82,7 @@ export default function ClinicPage() {
             </div>
 
             {/* Booking widget */}
-            <aside id="times" className={`${card} scroll-mt-24 self-start p-5 lg:sticky lg:top-20`}>
+            <aside id="times" className={`${card} min-w-0 scroll-mt-24 self-start p-5 lg:sticky lg:top-20`}>
               <h2 className="text-lg font-extrabold">დაჯავშნე ვიზიტი</h2>
               <p className="mb-3 text-sm text-muted">{clinic.booking_mode === 'instant' ? 'მყისიერი დადასტურება' : 'დადასტურებას კლინიკა გამოგიგზავნით'}</p>
               {services.data && (
@@ -98,7 +99,7 @@ export default function ClinicPage() {
       </div>
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {clinic.description && <Section title="კლინიკის შესახებ"><p className="text-[16px] leading-relaxed text-ink/80">{clinic.description}</p></Section>}
 
           <Section title="მომსახურება და ფასები">
@@ -143,7 +144,7 @@ export default function ClinicPage() {
                       <p className="mt-2 text-ink/85">{r.body}</p>
                       <div className="mt-2 flex items-center gap-3 text-xs text-muted">
                         <span className="inline-flex items-center gap-1 text-brand-700"><ShieldCheck size={13} /> დადასტურებული ვიზიტი</span>
-                        <span>{new Intl.DateTimeFormat('ka-GE', { dateStyle: 'medium' }).format(new Date(r.created_at))}</span>
+                        <span>{dateMedium(r.created_at)}</span>
                       </div>
                       {r.clinic_reply && <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm"><b>კლინიკის პასუხი:</b> {r.clinic_reply}</div>}
                     </li>
@@ -154,9 +155,9 @@ export default function ClinicPage() {
           </Section>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Section title="მდებარეობა">
-            <MiniMap lat={clinic.lat} lng={clinic.lng} label={clinic.name} />
+            <ErrorBoundary><MiniMap lat={clinic.lat} lng={clinic.lng} label={clinic.name} /></ErrorBoundary>
             <p className="mt-3 text-sm text-muted">{clinic.address}</p>
             <a href={directionsUrl(clinic.lat, clinic.lng)} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 font-semibold text-brand-700"><Navigation size={15} /> გახსენი მარშრუტი</a>
             <h3 className="mb-2 mt-5 text-sm font-bold uppercase tracking-wide text-muted">სამუშაო საათები</h3>

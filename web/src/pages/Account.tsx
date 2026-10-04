@@ -68,37 +68,6 @@ function Visits() {
     catch (e) { setMsg({ ok: false, text: friendlyError(e) }) }
   }
 
-  const Row = ({ a, isUpcoming }: { a: Appointment; isUpcoming: boolean }) => {
-    const ev = { title: `${a.clinic_services?.name} — ${a.clinics?.name}`, start: a.starts_at, end: a.ends_at, location: a.clinics?.address, details: `ექიმი: ${a.dentists?.full_name}` }
-    return (
-      <li className={`${card} p-5`}>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="text-lg font-bold">{a.clinic_services?.name}</div>
-            <div className="font-semibold text-brand-700">{dayLong(a.starts_at)} · {time(a.starts_at)}</div>
-            <Link to={`/clinics/${a.clinics?.slug}`} className="mt-1 block text-sm text-muted hover:text-brand-700">{a.clinics?.name} · {a.clinics?.address}</Link>
-            <div className="text-sm text-muted">ექიმი: {a.dentists?.full_name} · პაციენტი: {a.patient_name}</div>
-          </div>
-          <div className="text-right">
-            <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[a.status]}`}>{statusLabel[a.status]}</span>
-            <div className="mt-1 text-sm font-bold">{price(a.price_kind, a.price_gel, { short: true })}</div>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {isUpcoming && <>
-            <Button size="sm" variant="secondary" onClick={() => setResched(a)}><CalendarClock size={15} /> გადაცვლა</Button>
-            <Button size="sm" variant="danger" onClick={() => cancel(a)}><XCircle size={15} /> გაუქმება</Button>
-            <a href={googleCalendarUrl(ev)} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost"><CalendarPlus size={15} /> Google</Button></a>
-            <Button size="sm" variant="ghost" onClick={() => downloadIcs(ev)}><CalendarPlus size={15} /> .ics</Button>
-            {a.clinics && <a href={directionsUrl(a.clinics.lat, a.clinics.lng)} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost"><Navigation size={15} /> მარშრუტი</Button></a>}
-          </>}
-          {a.status === 'completed' && !reviewed.data?.includes(a.id) && <Button size="sm" onClick={() => setReviewing(a)}><Star size={15} /> შეაფასე</Button>}
-          {a.status === 'completed' && reviewed.data?.includes(a.id) && <span className="text-sm text-brand-700">✓ შეფასებული</span>}
-        </div>
-      </li>
-    )
-  }
-
   return (
     <div className="space-y-8">
       {msg && <div className={`rounded-xl p-3 text-sm font-medium ${msg.ok ? 'bg-brand-50 text-brand-800' : 'bg-rose-50 text-rose-700'}`}>{msg.text}</div>}
@@ -106,17 +75,48 @@ function Visits() {
         <h2 className="mb-3 text-xl font-extrabold">მომავალი ვიზიტები</h2>
         {upcoming.length === 0
           ? <Empty title="მომავალი ვიზიტები არ გაქვთ" hint="იპოვეთ კლინიკა და დაჯავშნეთ რამდენიმე დაწკაპუნებით." action={<Link to="/search"><Button>კლინიკების ძებნა</Button></Link>} />
-          : <ul className="space-y-3">{upcoming.map(a => <Row key={a.id} a={a} isUpcoming />)}</ul>}
+          : <ul className="space-y-3">{upcoming.map(a => <VisitRow key={a.id} a={a} isUpcoming reviewed={false} onResched={() => setResched(a)} onCancel={() => cancel(a)} onReview={() => setReviewing(a)} />)}</ul>}
       </section>
       {past.length > 0 && (
         <section>
           <h2 className="mb-3 text-xl font-extrabold">ისტორია</h2>
-          <ul className="space-y-3">{past.map(a => <Row key={a.id} a={a} isUpcoming={false} />)}</ul>
+          <ul className="space-y-3">{past.map(a => <VisitRow key={a.id} a={a} isUpcoming={false} reviewed={!!reviewed.data?.includes(a.id)} onResched={() => setResched(a)} onCancel={() => cancel(a)} onReview={() => setReviewing(a)} />)}</ul>
         </section>
       )}
       {resched && <RescheduleModal a={resched} onClose={() => setResched(null)} onDone={async () => { setResched(null); setMsg({ ok: true, text: 'ვიზიტი გადაიცვალა.' }); await qc.invalidateQueries({ queryKey: ['appointments'] }) }} />}
       {reviewing && <ReviewModal a={reviewing} onClose={() => setReviewing(null)} onDone={async () => { setReviewing(null); setMsg({ ok: true, text: 'მადლობა შეფასებისთვის!' }); await qc.invalidateQueries({ queryKey: ['reviewed'] }) }} />}
     </div>
+  )
+}
+
+function VisitRow({ a, isUpcoming, reviewed, onResched, onCancel, onReview }: { a: Appointment; isUpcoming: boolean; reviewed: boolean; onResched: () => void; onCancel: () => void; onReview: () => void }) {
+  const ev = { title: `${a.clinic_services?.name} — ${a.clinics?.name}`, start: a.starts_at, end: a.ends_at, location: a.clinics?.address, details: `ექიმი: ${a.dentists?.full_name}` }
+  return (
+    <li className={`${card} p-5`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-lg font-bold">{a.clinic_services?.name}</div>
+          <div className="font-semibold text-brand-700">{dayLong(a.starts_at)} · {time(a.starts_at)}</div>
+          <Link to={`/clinics/${a.clinics?.slug}`} className="mt-1 block text-sm text-muted hover:text-brand-700">{a.clinics?.name} · {a.clinics?.address}</Link>
+          <div className="text-sm text-muted">ექიმი: {a.dentists?.full_name} · პაციენტი: {a.patient_name}</div>
+        </div>
+        <div className="text-right">
+          <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[a.status]}`}>{statusLabel[a.status]}</span>
+          <div className="mt-1 text-sm font-bold">{price(a.price_kind, a.price_gel, { short: true })}</div>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {isUpcoming && <>
+          <Button size="sm" variant="secondary" onClick={onResched}><CalendarClock size={15} /> გადაცვლა</Button>
+          <Button size="sm" variant="danger" onClick={onCancel}><XCircle size={15} /> გაუქმება</Button>
+          <a href={googleCalendarUrl(ev)} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost"><CalendarPlus size={15} /> Google</Button></a>
+          <Button size="sm" variant="ghost" onClick={() => downloadIcs(ev)}><CalendarPlus size={15} /> .ics</Button>
+          {a.clinics && <a href={directionsUrl(a.clinics.lat, a.clinics.lng)} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost"><Navigation size={15} /> მარშრუტი</Button></a>}
+        </>}
+        {a.status === 'completed' && !reviewed && <Button size="sm" onClick={onReview}><Star size={15} /> შეაფასე</Button>}
+        {a.status === 'completed' && reviewed && <span className="text-sm text-brand-700">✓ შეფასებული</span>}
+      </div>
+    </li>
   )
 }
 
@@ -151,6 +151,17 @@ function RescheduleModal({ a, onClose, onDone }: { a: Appointment; onClose: () =
   )
 }
 
+function RateRow({ value, label, onChange }: { value: number; label: string; onChange: (n: number) => void }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-[15px]">{label}</span>
+      <span className="flex gap-0.5">{[1, 2, 3, 4, 5].map(n => (
+        <button key={n} type="button" onClick={() => onChange(n)} aria-label={`${n} ვარსკვლავი`}><Star size={26} className={n <= value ? 'fill-sun-400 text-sun-400' : 'text-slate-300'} /></button>
+      ))}</span>
+    </div>
+  )
+}
+
 function ReviewModal({ a, onClose, onDone }: { a: Appointment; onClose: () => void; onDone: () => void }) {
   const [r, setR] = useState({ overall: 5, staff: 5, cleanliness: 5, waiting: 5 })
   const [body, setBody] = useState('')
@@ -159,19 +170,11 @@ function ReviewModal({ a, onClose, onDone }: { a: Appointment; onClose: () => vo
     setBusy(true); setErr(null)
     try { await createReview({ appointmentId: a.id, ...r, body }); onDone() } catch (e) { setErr(friendlyError(e)) } finally { setBusy(false) }
   }
-  const Rate = ({ k, label }: { k: keyof typeof r; label: string }) => (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-[15px]">{label}</span>
-      <span className="flex gap-0.5">{[1, 2, 3, 4, 5].map(n => (
-        <button key={n} type="button" onClick={() => setR({ ...r, [k]: n })} aria-label={`${n} ვარსკვლავი`}><Star size={26} className={n <= r[k] ? 'fill-sun-400 text-sun-400' : 'text-slate-300'} /></button>
-      ))}</span>
-    </div>
-  )
   return (
     <Modal title="შეაფასე ვიზიტი" onClose={onClose}>
       <p className="mb-3 text-sm text-muted">{a.clinics?.name} · {a.dentists?.full_name}</p>
       <div className="divide-y divide-line rounded-2xl bg-slate-50 px-4">
-        <Rate k="overall" label="საერთო" /><Rate k="staff" label="პერსონალი" /><Rate k="cleanliness" label="სისუფთავე" /><Rate k="waiting" label="ლოდინის დრო" />
+        <RateRow value={r.overall} label="საერთო" onChange={n => setR({ ...r, overall: n })} /><RateRow value={r.staff} label="პერსონალი" onChange={n => setR({ ...r, staff: n })} /><RateRow value={r.cleanliness} label="სისუფთავე" onChange={n => setR({ ...r, cleanliness: n })} /><RateRow value={r.waiting} label="ლოდინის დრო" onChange={n => setR({ ...r, waiting: n })} />
       </div>
       <textarea value={body} onChange={e => setBody(e.target.value)} rows={3} placeholder="დაწერეთ თქვენი შთაბეჭდილება…" className="mt-4 w-full rounded-xl border border-line p-3 outline-none focus:border-brand-400" />
       {err && <p className="mt-3 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{err}</p>}

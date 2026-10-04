@@ -31,7 +31,7 @@ export default function DentistPage() {
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[1fr_380px]">
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <section className={`${card} flex flex-wrap items-center gap-5 p-6`}>
           <Avatar name={d.full_name} size={96} />
           <div className="min-w-0 flex-1">
@@ -79,7 +79,7 @@ export default function DentistPage() {
         </section>
       </div>
 
-      <aside className={`${card} self-start p-5 lg:sticky lg:top-20`}>
+      <aside className={`${card} min-w-0 self-start p-5 lg:sticky lg:top-20`}>
         <h2 className="text-lg font-extrabold">დაჯავშნე {d.full_name.split(' ')[0]}-თან</h2>
         {services.data && services.data.length > 0 && (
           <select value={svc?.id ?? ''} onChange={e => setServiceId(e.target.value)} className="my-3 h-12 w-full rounded-xl border border-line bg-white px-3 font-medium outline-none">
