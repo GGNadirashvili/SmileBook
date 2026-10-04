@@ -283,13 +283,13 @@ create table audit_log (
 );
 
 -- ───────────── views ─────────────
-create view clinic_stats as
+create view clinic_stats with (security_invoker = true) as
   select clinic_id,
          round(avg(overall)::numeric, 1) as rating,
          count(*)::int                   as review_count
   from reviews where status = 'published' group by clinic_id;
 
-create view dentist_stats as
+create view dentist_stats with (security_invoker = true) as
   select dentist_id,
          round(avg(overall)::numeric, 1) as rating,
          count(*)::int                   as review_count
@@ -901,6 +901,11 @@ grant update on profiles, appointments, clinics, reviews to authenticated;
 grant insert, update, delete on dentists, clinic_services, dentist_services, working_hours,
   schedule_overrides, clinic_hours, chairs, clinic_staff to authenticated;
 revoke select on notifications_outbox, audit_log from anon;
+-- Supabase advisor: "Security Definer View". Make the stats views run with the caller's permissions.
+-- Safe: they only aggregate published reviews, which anyone may read under RLS anyway.
+-- (Fresh installs already get this from 0001; this patch fixes databases created earlier.)
+alter view public.clinic_stats  set (security_invoker = true);
+alter view public.dentist_stats set (security_invoker = true);
 -- SmileBook TEST DATA. Fictional clinics, dentists and reviews — safe to re-run on an empty DB.
 -- Run after the migrations. (Test *users* are created in the Supabase dashboard; see dev_roles.sql.)
 

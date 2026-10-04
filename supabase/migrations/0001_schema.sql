@@ -283,13 +283,13 @@ create table audit_log (
 );
 
 -- ───────────── views ─────────────
-create view clinic_stats as
+create view clinic_stats with (security_invoker = true) as
   select clinic_id,
          round(avg(overall)::numeric, 1) as rating,
          count(*)::int                   as review_count
   from reviews where status = 'published' group by clinic_id;
 
-create view dentist_stats as
+create view dentist_stats with (security_invoker = true) as
   select dentist_id,
          round(avg(overall)::numeric, 1) as rating,
          count(*)::int                   as review_count
